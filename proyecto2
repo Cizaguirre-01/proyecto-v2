@@ -1,0 +1,213 @@
+#include <iostream>
+#include <string>
+#include <vector>
+#include <climits>
+
+using namespace std;
+
+struct Alumno {string nombre; string matricula; float  calif[3]; int grupo;};
+struct Maestro{string nombre; string materia; int grupo;};
+struct Grupo {string nombre; string carrera;};    
+float promedioDe(const Alumno& a) {
+    return (a.calif[0] + a.calif[1] + a.calif[2]) / 3;
+} 
+
+int leerEntero(string mensaje, int min, int max= INT_MAX) {
+    int valor;
+    while (true) {
+        cout << mensaje;
+        if (cin >> valor && valor >= min && valor <= max) {
+            cin.ignore(1000, '\n');
+            return valor;
+        }
+        cin.clear();               
+        cin.ignore(1000, '\n');   
+        cout << "Dato invalido. debe ser un numero entre " << min << " y " << max << "." << endl;
+    }
+}
+
+float leerFloat(string mensaje, float min, float max) {
+    float valor;
+    while (true) {
+        cout << mensaje;
+        if (cin >> valor && valor >= min && valor <= max) {
+            cin.ignore(1000, '\n');
+            return valor;
+        }
+        cin.clear();
+        cin.ignore(1000, '\n');
+        cout << "Dato invalido. Debe ser un numero entre " << min << " y " << max << "." << endl;
+    }
+}
+
+
+int main(){
+
+
+    vector<Alumno> alum;
+    vector<Grupo> grup;
+    vector<Maestro> maes;
+
+    int opcion;
+    do {
+        cout << "Bienvenido al menu academico"<<endl;
+        cout << "[1] Capturar Alumnos"<<endl;
+        cout << "[2] Capturar Grupos y carreras"<<endl;
+        cout << "[3] Capturar Maestros"<<endl;
+        cout << "[4] Mostrar reporte"<<endl;
+        cout << "[5] Salir"<<endl;
+        opcion= leerEntero("elegir una opcion:",1,5);
+
+        switch (opcion)
+        {
+        case 1:{
+           
+        
+            int n= leerEntero("cuantos alumnos va a registrar",1);
+
+            for (int i=0;i<n;i++ ){
+                Alumno a;
+                cout<<"ingrese nombre del alumno"<<alum.size()+1<<":"<<endl;
+                getline(cin, a.nombre);
+                cout<<" ingrese matricula del alumno :";
+                getline(cin, a.matricula);
+                string nombreGrupo;
+                cout<< " Ingrese el nombre de un grupo donde esta el alumno: " <<a.nombre<< " : " <<endl;
+                getline(cin,nombreGrupo);
+
+                a.grupo = -1;
+                for (int g = 0; g < (int)grup.size(); g++) {
+                    if (grup[g].nombre == nombreGrupo) a.grupo = g;
+                }
+
+                if (a.grupo == -1) {
+                    Grupo nuevo;
+                    nuevo.nombre = nombreGrupo;
+                    nuevo.carrera = "";
+                    grup.push_back(nuevo);
+                    a.grupo = grup.size() - 1;
+                }
+
+           
+                for(int j=0;j<3;j++){
+                    
+                    a.calif[j]= leerFloat("ingrese calificacion"+ to_string(j+1)+ "del alumno: ",0,10);
+                    
+                }
+                alum.push_back(a);
+               
+
+            }
+            break;
+        
+        } 
+            
+        
+        case 2:{
+        if(grup.empty()){
+            cout<<"Aun no hay grupos.Valla a la opcion 1  para crearlos"<<endl;
+            break;
+        }
+         cout << "Grupos existentes:" << endl;
+            for (int g = 0; g < (int)grup.size(); g++) {
+                cout << "Grupo " << g + 1 << ": " << grup[g].nombre << endl;
+                cout << "Cual es su carrera asociada: ";
+                getline(cin, grup[g].carrera);
+            }
+            break;
+        }
+
+        case 3:{
+            if (grup.empty()) {
+                cout << "(primero haga la opcion 1)" << endl;
+                break;
+            }
+
+            int n=leerEntero("cuantos maestros va a registrar: ",1);
+           
+
+            for(int i=0;i<n;i++){
+                Maestro m;
+                cout<<"ingrese los nombres completos de los maestros: ";
+                getline(cin, m.nombre);
+                cout<<" Que materia imparte: ";
+                getline(cin, m.materia);
+                
+                if (!grup.empty()) {
+                    cout << "Grupos registrados:" << endl;
+                    for (int g = 0; g < (int)grup.size(); g++) {
+                        cout << "["<<g+1<<"]" << grup[g].nombre << endl;
+                    }
+                }
+                int sel=leerEntero("Elige el grupo al que da clases" + m.nombre + ": ", 1, (int)grup.size());
+
+                m.grupo = sel - 1;
+                maes.push_back(m);
+
+
+
+            }
+            break;
+
+
+        }
+        case 4:{
+            cout<< " promedios de cada almumno "<<endl;
+            
+            for(int i=0;i< (int)alum.size();i++){
+                cout<<alum[i].nombre<<"("<<alum[i].matricula<<")"<<"promedio:"<<promedioDe(alum[i])<<endl;
+            }
+                
+            
+            cout<<"alumno con mejor promedio por grupo"<<endl;
+           
+               for(int g=0; g< (int)grup.size();g++){
+                 int mejor=-1;
+                 for(int i=0; i<(int)alum.size();i++){
+                    if (alum[i].grupo==g &&
+                        (mejor==-1 || promedioDe (alum[i])> promedioDe(alum[mejor]))){
+                        mejor= i;
+                    }
+                }
+                cout<< grup[g].nombre<<": ";
+                if( mejor==-1)cout<<" sin alumnos"<<endl;
+                else cout<< alum[mejor].nombre<<"("<<promedioDe(alum[mejor])<<")"<<endl;
+
+            }
+            cout << "cantidad de alumnos que hay por carrera" << endl;
+            vector<string> carreras;
+            for (int g = 0; g < (int)grup.size(); g++) {
+                bool existe = false;
+                for (int k = 0; k < (int)carreras.size(); k++) {
+                    if (carreras[k] == grup[g].carrera) existe = true;
+                }
+                if (!existe) carreras.push_back(grup[g].carrera);
+            }
+            for (int k = 0; k < (int)carreras.size(); k++) {
+                int contador = 0;
+                for (int i = 0; i < (int)alum.size(); i++) {
+                    if (grup[alum[i].grupo].carrera == carreras[k]) contador++;
+                }
+                cout << carreras[k] << " : " << contador << " alumnos" << endl;
+
+            }
+            cout << "\nMaestros por grupo" << endl;
+            for (int i = 0; i < (int)maes.size(); i++) {
+                cout << maes[i].nombre << " - " << maes[i].materia<< " - grupo: " << grup[maes[i].grupo].nombre << endl;
+
+            }
+            break;
+        }
+
+        case 5:
+            cout << "salida" << endl;
+            break;
+
+        default:
+            cout << "opcion desconocida" << endl;
+            break;
+        }
+    } while (opcion != 5);
+
+    return 0;
+}
